@@ -1,23 +1,34 @@
 package org.telran.forum.security.service;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 
-@EnableWebSecurity
-public class AuthorizationConfiguration extends WebSecurityConfigurerAdapter {
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class AuthorizationConfiguration {
 	
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http.httpBasic();
-		http.csrf().disable();//crosside request surgery - когда отпарвляется запрос с формой, в параметрах возвращается токен что с этого сайта идет все норм
-		http.sessionManagement()
-			.sessionCreationPolicy(SessionCreationPolicy.STATELESS); //првоеряем авторизацию только по заголовку, а не по сейшн id. То есть запрещаем куки 
-		http.authorizeRequests()
-			.antMatchers("/account/register/**").permitAll() //проверить, что там всякую ерунду можно написать //можно не только эндпоинты но и методы
-			.antMatchers("/forum/posts/**").permitAll()
-			.anyRequest().authenticated();
-		
+	@Bean
+	public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+			http.httpBasic();
+			http.csrf().disable();
+			http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+			http.authorizeRequests(authorize -> authorize
+							.mvcMatchers("/account/register/**", "/forum/posts/**").permitAll() 
+							.mvcMatchers("/account/user/*/role/*/**").hasRole("ADMINISTRATOR")
+							.mvcMatchers(HttpMethod.PUT, "/account/user/{login}/**").access("#login == authentication.name and @customWebSecurity.passwordExpirationChecker(authentication.name)")
+							.mvcMatchers(HttpMethod.DELETE, "/account/user/{login}/**").access("#login == (authentication.name or hasRole('ADMINISTRATOR')) and @customWebSecurity.passwordExpirationChecker(authentication.name)")
+							.mvcMatchers(HttpMethod.POST, "/forum/post/{author}/**").access("#author == authentication.name and @customWebSecurity.passwordExpirationChecker(authentication.name)")
+							.mvcMatchers(HttpMethod.PUT, "/forum/post/{id}/comment/{author}/**").access("#author == authentication.name and @customWebSecurity.passwordExpirationChecker(authentication.name)")
+							.mvcMatchers(HttpMethod.PUT, "/forum/post/{id}/like/**").access("authenticated and @customWebSecurity.passwordExpirationChecker(authentication.name)") 
+							.mvcMatchers(HttpMethod.PUT, "/forum/post/{id}/**").access("@customWebSecurity.checkPostAuthor(#id, authentication.name) and @customWebSecurity.passwordExpirationChecker(authentication.name)")
+							.mvcMatchers(HttpMethod.DELETE, "/forum/post/{id}/**").access("(@customWebSecurity.checkPostAuthor(#id, authentication.name) or hasRole('MODERATOR')) and @customWebSecurity.passwordExpirationChecker(authentication.name)")
+							.mvcMatchers(HttpMethod.PUT, "/account/password/**").authenticated()
+							.anyRequest().authenticated());
+		return http.build();
 	}
 }

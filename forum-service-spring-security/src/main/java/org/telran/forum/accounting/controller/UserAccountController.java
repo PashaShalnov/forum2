@@ -1,8 +1,8 @@
 package org.telran.forum.accounting.controller;
 
 import java.security.Principal;
-import java.util.Base64;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +29,6 @@ public class UserAccountController {
 	
 	@PostMapping("/register")
 	public UserDto addUser(@RequestBody NewUserDto newUserDto) {
-		//TODO addUser - change to login 
 		return accountService.addUser(newUserDto);
 	}
 	
@@ -39,32 +38,28 @@ public class UserAccountController {
 	}
 	
 	@PostMapping("/login")
+	@PreAuthorize("#login == authentication.name")
 	public UserDto login(Principal principal) {
 		return accountService.findUser(principal.getName());
 	}
 	
 	@DeleteMapping("/user/{login}")
-	//TODO плохо с авторизацией (может удалить кого удгодно) 
 	public UserDto removeUser(@PathVariable String login) {
 		return accountService.removeUser(login);
 	}
 	
 	@PutMapping("/user/{login}")
 	public UserDto updateUser(@PathVariable String login, @RequestBody UpdateUserDto updateUserDto) {
-		//TODO плохо с авторизацией - может апдейтить любого
 		return accountService.updateUser(login, updateUserDto);
 	}
 	
 	@PutMapping("/user/{login}/role/{role}")
 	public RolesRespDto addRole(@PathVariable String login, @PathVariable String role) {
-		//TODO плохо с авторизацией - может апдейтить любого
-
 		return accountService.changeRole(login, role, true);
 	}
 
 	@DeleteMapping("/user/{login}/role/{role}")
 	public RolesRespDto removeRole(@PathVariable String login, @PathVariable String role) {
-		//TODO плохо с авторизацией - может апдейтить любого
 		return accountService.changeRole(login, role, false);
 	}
 	

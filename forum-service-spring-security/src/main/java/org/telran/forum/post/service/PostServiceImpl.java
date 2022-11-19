@@ -16,9 +16,11 @@ import org.telran.forum.post.model.Comment;
 import org.telran.forum.post.model.Post;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostServiceImpl implements PostService {
 
 	final ForumRepository forumRepository;
@@ -34,6 +36,7 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public PostDto findPostById(String id) {
+		log.info("post with id {} handled", id);
 		Post post = forumRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
 		return modelMapper.map(post, PostDto.class);
 	}
