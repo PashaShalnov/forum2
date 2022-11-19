@@ -1,5 +1,7 @@
 package org.telran.forum.accounting.service;
 
+import java.time.LocalDateTime;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -86,6 +88,7 @@ public class AccountServiceImpl implements AccountService {
 		UserAccount user = accountRepository.findById(login).orElseThrow(() -> new UserNotFoundException());
 		String newpassword = passwordEncoder.encode(password);
 		user.setPassword(newpassword);
+		user.setDateWhenPasswordUpdated(LocalDateTime.now());
 		accountRepository.save(user);
 	}
 }

@@ -26,7 +26,7 @@ public class CustomWebSecurity {
 		System.out.println("ID" + id);
 		UserAccount userAccount = accountRepository.findById(id).orElse(null);
 		if (userAccount != null) {
-			LocalDateTime updateTime = userAccount.getCreationDate();
+			LocalDateTime updateTime = userAccount.getDateWhenPasswordUpdated();
 			return updateTime.isAfter(LocalDateTime.now().minusMonths(6));
 		}
 		return false;

@@ -26,10 +26,13 @@ public class UserAccount {
 	@Singular
 	Set<String> roles;
 	LocalDateTime creationDate;
+	@Setter
+	LocalDateTime DateWhenPasswordUpdated;
 	
 	public UserAccount() {
 		roles = new HashSet<>((Arrays.asList("USER")));
 		creationDate = LocalDateTime.now();
+		DateWhenPasswordUpdated = creationDate;
 	}
 	
 	public UserAccount(String login, String password, String firstName, String lastName) {
@@ -40,6 +43,7 @@ public class UserAccount {
 		this.lastName = lastName;
 		this.roles = new HashSet<>(Arrays.asList("USER"));
 		this.creationDate = LocalDateTime.now();
+		this.DateWhenPasswordUpdated = this.creationDate;
 	}
 	
 	public boolean addRole(String role) {
